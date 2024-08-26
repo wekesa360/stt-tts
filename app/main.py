@@ -5,7 +5,7 @@ from auth import verify_api_key
 from stt_handler import speech_to_text
 from tts_handler import text_to_speech
 
-app = FastApi()
+app = FastAPI()
 
 APP_ID = APIKeyHeader(name="X-App-ID")
 APP_KEY = APIKeyHeader(name="X-App-Key")
