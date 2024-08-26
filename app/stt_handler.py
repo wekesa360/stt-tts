@@ -1,20 +1,16 @@
 import speech_recognition as sr
-from io import BytesIO
 import logging
 import wave
 
 logger = logging.getLogger(__name__)
 
-def speech_to_text(audio_content: bytes) -> str:
+def speech_to_text(audio_file):
     recognizer = sr.Recognizer()
     
     try:
-        # Log audio content details
-        logger.info(f"Received audio content of size: {len(audio_content)} bytes")
-        
         # Try to open the audio as a WAV file and log its properties
         try:
-            with wave.open(BytesIO(audio_content), 'rb') as wav_file:
+            with wave.open(audio_file, 'rb') as wav_file:
                 logger.info(f"WAV file properties: channels={wav_file.getnchannels()}, "
                             f"sample_width={wav_file.getsampwidth()}, "
                             f"framerate={wav_file.getframerate()}, "
@@ -22,7 +18,7 @@ def speech_to_text(audio_content: bytes) -> str:
         except wave.Error:
             logger.warning("Couldn't open audio as WAV file. It might be in a different format.")
 
-        with sr.AudioFile(BytesIO(audio_content)) as source:
+        with sr.AudioFile(audio_file) as source:
             logger.info("Reading audio file")
             audio = recognizer.record(source)
         
