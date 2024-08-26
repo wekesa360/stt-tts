@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from auth import verify_api_key
 from stt_handler import speech_to_text
 from tts_handler import text_to_speech
+import io
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,16 @@ async def stt_endpoint(
     logger.info(f"Received file: {file.filename}, content_type: {file.content_type}")
     
     try:
+        # Read the file into memory
         audio_content = await file.read()
         logger.info(f"Audio content size: {len(audio_content)} bytes")
         
-        text = speech_to_text(audio_content)
+        # Create a BytesIO object from the audio content
+        audio_io = io.BytesIO(audio_content)
+        audio_io.name = 'audio.wav'  # Set a name for the in-memory file
+        
+        # Pass the BytesIO object to the speech_to_text function
+        text = speech_to_text(audio_io)
         return {"text": text}
     except ValueError as e:
         logger.error(f"Error processing audio: {str(e)}")
