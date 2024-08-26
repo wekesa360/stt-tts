@@ -1,4 +1,4 @@
-from fastapi import FastApi, Depends, HTTPException, File, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from auth import verify_api_key
