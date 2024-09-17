@@ -1,7 +1,7 @@
 import logging
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 from auth import verify_api_key
 from stt_handler import speech_to_text
@@ -10,6 +10,8 @@ import io
 import magic
 import numpy as np
 import soundfile as sf
+from transformers import pipeline
+
 
 # Configure logging
 logging.basicConfig(
@@ -24,6 +26,11 @@ APP_KEY = APIKeyHeader(name="X-App-Key")
 
 class TextInput(BaseModel):
     text: str
+
+
+# Initialize the translation pipelines
+sw_to_en = pipeline("translation", model="Bildad/Swahili-English_Translation")
+en_to_sw = pipeline("translation", model="Bildad/English-Swahili_Translation")
 
 
 @app.get("/")
@@ -102,6 +109,44 @@ async def debug_audio_endpoint(
     except Exception as e:
         logger.error(f"Error generating debug audio: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error generating debug audio")
+
+
+class TranslationInput(BaseModel):
+    text: str
+    target: str
+
+
+@app.post("/translate")
+async def translate_endpoint(
+    input: TranslationInput,
+    app_id: str = Depends(APP_ID),
+    app_key: str = Depends(APP_KEY),
+):
+    if not verify_api_key(app_id, app_key):
+        logger.warning("Invalid API Key attempt")
+        raise HTTPException(status_code=401, detail="Invalid API Key")
+
+    text_to_translate = input.text
+    target_language = input.target
+
+    logger.info(
+        f"Received translation request: '{text_to_translate[:50]}' to {target_language}"
+    )
+
+    if target_language == "sw":
+        translation = en_to_sw(text_to_translate)[0]
+    elif target_language == "en":
+        translation = sw_to_en(text_to_translate)[0]
+    else:
+        logger.warning(f"Invalid target language: {target_language}")
+        raise HTTPException(status_code=400, detail="Invalid Target Language")
+
+    translated_text = translation["translation_text"]
+    logger.info(
+        f"Successfully translated text to {target_language}: {translated_text[:50]}"
+    )
+
+    return JSONResponse(content={"translated_text": translated_text})
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --no-cache-dir --no-binary cffi cffi
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 RUN export PORT=3000
 
