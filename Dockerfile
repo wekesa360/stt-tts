@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir --no-binary cffi cffi
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN export PORT=3000
+
 COPY ./app .
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD [ "sh", "-c", "uvicorn main:app --host=0.0.0.0 --port=${PORT:-8000}" ]
