@@ -119,13 +119,7 @@ class TranslationInput(BaseModel):
 @app.post("/translate")
 async def translate_endpoint(
     input: TranslationInput,
-    app_id: str = Depends(APP_ID),
-    app_key: str = Depends(APP_KEY),
 ):
-    if not verify_api_key(app_id, app_key):
-        logger.warning("Invalid API Key attempt")
-        raise HTTPException(status_code=401, detail="Invalid API Key")
-
     text_to_translate = input.text
     target_language = input.target
 
