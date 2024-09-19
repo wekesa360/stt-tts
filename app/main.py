@@ -10,7 +10,7 @@ import io
 import magic
 import numpy as np
 import soundfile as sf
-from transformers import pipeline
+from translator import en_to_sw, sw_to_en
 
 
 # Configure logging
@@ -26,11 +26,6 @@ APP_KEY = APIKeyHeader(name="X-App-Key")
 
 class TextInput(BaseModel):
     text: str
-
-
-# Initialize the translation pipelines
-sw_to_en = pipeline("translation", model="Bildad/Swahili-English_Translation")
-en_to_sw = pipeline("translation", model="Bildad/English-Swahili_Translation")
 
 
 @app.get("/")
@@ -127,20 +122,23 @@ async def translate_endpoint(
         f"Received translation request: '{text_to_translate[:50]}' to {target_language}"
     )
 
-    if target_language == "sw":
-        translation = en_to_sw(text_to_translate)[0]
-    elif target_language == "en":
-        translation = sw_to_en(text_to_translate)[0]
-    else:
-        logger.warning(f"Invalid target language: {target_language}")
-        raise HTTPException(status_code=400, detail="Invalid Target Language")
+    try:
+        if target_language == "sw":
+            translation = en_to_sw(text_to_translate)
+        elif target_language == "en":
+            translation = sw_to_en(text_to_translate)
+        else:
+            logger.warning(f"Invalid target language: {target_language}")
+            raise HTTPException(status_code=400, detail="Invalid Target Language")
 
-    translated_text = translation["translation_text"]
-    logger.info(
-        f"Successfully translated text to {target_language}: {translated_text[:50]}"
-    )
+        logger.info(
+            f"Successfully translated text to {target_language}: {translation[:50]}"
+        )
+    except Exception as e:
+        logger.error(f"Error translating text: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error translating text")
 
-    return JSONResponse(content={"translated_text": translated_text})
+    return JSONResponse(content={"translated_text": translation})
 
 
 if __name__ == "__main__":
