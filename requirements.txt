@@ -12,3 +12,4 @@ python-magic
 gTTS
 transformers
 sentencepiece
+sacremoses
