@@ -1,4 +1,4 @@
 build:
   docker:
-    web: Dockerfile  # Make sure your Dockerfile is named "Dockerfile"
+    web: Dockerfile
 
